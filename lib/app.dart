@@ -44,7 +44,7 @@ class _FlutterReduxAppState extends State<FlutterReduxApp>
         userInfo: User.empty(),
         login: false,
         themeData: CommonUtils.getThemeData(GSYColors.primarySwatch),
-        locale: const Locale('zh', 'CH')),
+        locale: const Locale('en', 'US')),
   );
 
   ColorFilter greyscale = const ColorFilter.matrix(<double>[
@@ -90,7 +90,7 @@ class _FlutterReduxAppState extends State<FlutterReduxApp>
               GSYLocalizationsDelegate.delegate,
             ],
             supportedLocales: [
-              store.state.locale ?? store.state.platformLocale!
+              store.state.locale ?? store.state.platformLocale ?? const Locale('en', 'US')
             ],
             locale: store.state.locale,
             theme: store.state.themeData,
