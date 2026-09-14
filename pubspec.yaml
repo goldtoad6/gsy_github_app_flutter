@@ -6,10 +6,10 @@ version: 1.7.0+32
 environment:
   sdk: '>=3.13.0 <4.0.0'
 
+# 2026-09-14: 让 flutter_test 与 test/test_core 共同约束 test_api、matcher。
+# 单独 override 旧版本会绕过兼容性求解，导致 iOS 编译缺少 Declarer / Invoker。
 dependency_overrides:
   web_socket_channel: ^3.0.1
-  test_api: 0.7.7
-  matcher: 0.12.17
   # path_provider_foundation 2.6.0 起改走纯 FFI（objective_c），podspec + Package.swift 双双移除，
   # iOS/macOS 端不再需要 plugin channel。pub 求解不会自动挑到 2.6.0，只能显式 override。
   # 目的：去掉一个 SPM 名单里的 iOS plugin，减少 CocoaPods 变只读前的原生插件面。
@@ -62,11 +62,6 @@ dependencies:
   # 若发现回归再回退到 4.10.0。
   flutter_inappwebview: 6.2.0-beta.3
   #bezier: ^1.1.5
-  flare_flutter:
-    git:
-      url: https://gitee.com/CarGuo/Flare-Flutter.git
-      ref: d9c4ca55cbea3f283491679847ff1e9b4bc74192
-      path: flare_flutter/
 
   rive: 0.14.11
   # 固定版本

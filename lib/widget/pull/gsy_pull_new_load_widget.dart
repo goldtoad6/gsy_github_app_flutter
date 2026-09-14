@@ -1,4 +1,3 @@
-import 'package:flare_flutter/flare_actor.dart';
 import 'package:gsy_github_app_flutter/common/localization/extension.dart';
 import 'package:gsy_github_app_flutter/common/logger.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_adaptive_shell.dart';
@@ -9,7 +8,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 
 import 'custom_bouncing_scroll_physics.dart';
-import 'gsy_flare_pull_controller.dart';
+import 'gsy_rive_pull_animation.dart';
 
 const double iosRefreshHeight = 140;
 const double iosRefreshIndicatorExtent = 100;
@@ -46,9 +45,7 @@ class GSYPullLoadWidget extends StatefulWidget {
   _GSYPullLoadWidgetState createState() => _GSYPullLoadWidgetState();
 }
 
-class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget>
-    with GSYFlarePullController {
-  //with GSYFlarePullMutliController {
+class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget> {
 
   final GlobalKey<IOS.CupertinoSliverRefreshControlState> sliverRefreshKey =
       GlobalKey<IOS.CupertinoSliverRefreshControlState>();
@@ -62,9 +59,6 @@ class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget>
   // 由外层 LayoutBuilder 记录的当前可用高度，供空态铺满整屏；
   // 旋转 / 分屏 / 折叠屏 posture 切换时 LayoutBuilder 会重建，自动跟着更新。
   double _availableHeight = 0;
-
-  @override
-  ValueNotifier<bool> isActive = ValueNotifier<bool>(true);
 
   @override
   void initState() {
@@ -323,14 +317,6 @@ class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget>
     );
   }
 
-  bool playAuto = false;
-
-  @override
-  bool get getPlayAuto => playAuto;
-
-  @override
-  double get refreshTriggerPullDistance => iosRefreshHeight;
-
   Widget buildSimpleRefreshIndicator(
     BuildContext? context,
     IOS.RefreshIndicatorMode? refreshState,
@@ -338,13 +324,6 @@ class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget>
     double? refreshTriggerPullDistance,
     double? refreshIndicatorExtent,
   ) {
-    pulledExtentFlare = pulledExtent! * 0.6;
-    playAuto = refreshState == IOS.RefreshIndicatorMode.refresh;
-    /*if(refreshState == IOS.RefreshIndicatorMode.refresh) {
-      onRefreshing();
-    } else {
-      onRefreshEnd();
-    }*/
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -353,16 +332,13 @@ class _GSYPullLoadWidgetState extends State<GSYPullLoadWidget>
 
         ///动态大小处理
         height:
-            pulledExtent > iosRefreshHeight ? pulledExtent : iosRefreshHeight,
-        child: FlareActor(
-            //"static/file/Space-Demo.flr",
-            "static/file/loading_world_now.flr",
-            alignment: Alignment.topCenter,
-            fit: BoxFit.cover,
-            controller: this,
-            animation: "Earth Moving"
-            //animation: "idle"
-            ),
+            pulledExtent! > iosRefreshHeight ? pulledExtent : iosRefreshHeight,
+        // 2026-09-13: Same pull/refresh behavior, now using the migrated Rive asset.
+        child: GSYRivePullAnimation(
+          pulledExtent: pulledExtent,
+          refreshTriggerPullDistance: iosRefreshHeight,
+          playAuto: refreshState == IOS.RefreshIndicatorMode.refresh,
+        ),
       ),
     );
   }

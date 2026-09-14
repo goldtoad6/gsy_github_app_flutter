@@ -47,6 +47,37 @@ flutter build apk --release --target-platform=android-arm64 --no-shrink
 - 拉包时网络或代理异常
 - 手改生成文件但没同步源文件
 
+### iOS 编译提示 `Declarer` / `Invoker` 缺失（2026-09-14）
+
+若错误来自 `test_core/lib/src/scaffolding.dart`，先检查测试包的配套版本。
+本次失败时实际加载了 `test_core 0.6.20`，但旧 `dependency_overrides` 强制使用
+`test_api 0.7.7` 与 `matcher 0.12.17`，绕过了依赖自身的兼容范围。
+`riverpod` 的运行库导入 `package:test/test.dart`，因此正常 App 编译也会受影响。
+
+修复是移除这两个过时 override，让 `flutter_test` 与 `test/test_core` 共同求解。
+Flutter 3.47.2 下解析结果为 `test 1.31.1`、`test_core 0.6.18`、
+`test_api 0.7.12`、`matcher 0.12.20`。不要单独换成另一组硬编码 override。
+依据见 [Dart dependency overrides 文档](https://dart.dev/tools/pub/dependencies#dependency-overrides)
+及当前 Flutter SDK 的 `packages/flutter_test/pubspec.yaml`。
+
+使用同一个 SDK 和包源重新生成依赖配置；本仓库锁文件使用 `pub.flutter-io.cn`：
+
+```bash
+PUB_HOSTED_URL=https://pub.flutter-io.cn fvm flutter pub get
+fvm flutter test --no-pub test/app/smoke_post_frame_test.dart
+PUB_HOSTED_URL=https://pub.flutter-io.cn fvm flutter run -d <ios-simulator-id>
+```
+
+不要只还原 `pubspec.lock` 而保留旧 `.dart_tool/package_config.json`，也不要为了这个
+Dart 编译错误去删除 Pods、改变 SwiftPM 配置或恢复 Flare 依赖。修复前后测试与 iOS
+运行证据保存在 `tool/ai/smoke/evidence/20260914-ios-test-dependencies/`。
+
+本次修复后，iOS 模拟器已进入真实首页并跑通 Rive 下拉刷新，Android release APK
+也构建成功。同次交互另捕获 `IOSScrollViewFlingVelocityTracker` 的时间戳倒退断言；
+它发生在运行阶段，具体触发原因尚未确认，不能用这次依赖修复宣称它也已解决。
+原始错误、后续刷新无新增错误的记录与验证边界见该目录的 `VALIDATION.md`。
+同次日志还有已捕获的 HTTP 401，因此动画生命周期通过不等同于服务端数据刷新成功。
+
 ## 当前本地验证策略
 
 仓库已有 `test/` 与 `patrol_test/` 双自动化测试目录，本地验证走"静态检查 + 单测 + Patrol 集成 + 手工冒烟"的组合：

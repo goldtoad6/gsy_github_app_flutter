@@ -377,15 +377,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.1.1"
-  flare_flutter:
-    dependency: "direct main"
-    description:
-      path: flare_flutter
-      ref: d9c4ca55cbea3f283491679847ff1e9b4bc74192
-      resolved-ref: d9c4ca55cbea3f283491679847ff1e9b4bc74192
-      url: "https://gitee.com/CarGuo/Flare-Flutter.git"
-    source: git
-    version: "3.0.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -823,13 +814,13 @@ packages:
     source: hosted
     version: "7.3.1"
   matcher:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: matcher
-      sha256: dc58c723c3c24bf8d3e2d3ad3f2f9d7bd9cf43ec6feaa64181775e60190153f2
+      sha256: "31bd099b47c10cd1aeb55146a2d46ce0277630ecef3f7dae54ad7873f36696cd"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.12.17"
+    version: "0.12.20"
   material_color_utilities:
     dependency: transitive
     description:
@@ -1556,13 +1547,13 @@ packages:
     source: hosted
     version: "1.31.1"
   test_api:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: test_api
-      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
+      sha256: "2a122cbe059f8b610d3a5415f42e255b6c17b1f21eee1d960f31080237fb4f11"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.7.7"
+    version: "0.7.12"
   test_core:
     dependency: transitive
     description:
