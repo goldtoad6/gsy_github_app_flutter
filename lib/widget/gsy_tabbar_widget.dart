@@ -297,8 +297,9 @@ class _GSYTabBarState extends ConsumerState<GSYTabBarWidget>
       return Scaffold(
         backgroundColor: GSYColors.mainBackgroundColor,
         resizeToAvoidBottomInset: widget.resizeToAvoidBottomPadding,
-        floatingActionButton:
-            SafeArea(child: widget.floatingActionButton ?? Container()),
+        floatingActionButton: widget.floatingActionButton == null
+            ? null
+            : SafeArea(child: widget.floatingActionButton!),
         floatingActionButtonLocation: widget.floatingActionButtonLocation,
         persistentFooterButtons: widget.footerButtons,
         appBar: AppBar(
@@ -307,6 +308,7 @@ class _GSYTabBarState extends ConsumerState<GSYTabBarWidget>
           bottom: TabBar(
               controller: _tabController,
               tabs: widget.tabItems!,
+              isScrollable: true,
               indicatorColor: widget.indicatorColor,
               onTap: _navigationTapClick),
         ),
