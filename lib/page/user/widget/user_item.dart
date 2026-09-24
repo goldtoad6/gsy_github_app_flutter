@@ -72,14 +72,39 @@ class UserItem extends StatelessWidget {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Text(userItemViewModel.userName ?? "null",
-                            style: GSYConstant.smallTextBold),
+                        Flexible(
+                          child: Text(userItemViewModel.userName ?? "null",
+                              overflow: TextOverflow.ellipsis,
+                              style: GSYConstant.smallTextBold),
+                        ),
+                        if (userItemViewModel.isOrganization)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: GSYColors.subLightTextColor
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: GSYColors.subLightTextColor
+                                      .withValues(alpha: 0.5),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: const Text('Organization',
+                                  style: GSYConstant.smallSubLightText),
+                            ),
+                          ),
                         if (userItemViewModel.followers != null)
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Text(
-                                  "followers: ${userItemViewModel.followers}",
+                                  userItemViewModel.isOrganization
+                                      ? "members: ${userItemViewModel.followers}"
+                                      : "followers: ${userItemViewModel.followers}",
                                   style: GSYConstant.smallSubText),
                             ),
                           ),
@@ -121,6 +146,7 @@ class UserItemViewModel {
   String? login;
   String? lang;
   String? index;
+  bool isOrganization = false;
 
   new fromMap(User user) {
     userName = user.login;
@@ -136,10 +162,12 @@ class UserItemViewModel {
     login = user.login;
     lang = user.lang;
     this.index = index.toString();
+    isOrganization = user.isOrganization;
   }
 
   new fromOrgMap(UserOrg org) {
     userName = org.login;
     userPic = org.avatarUrl;
+    isOrganization = true;
   }
 }

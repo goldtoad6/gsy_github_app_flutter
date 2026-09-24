@@ -759,10 +759,36 @@ class UserRepository {
         return DataResult(null, false);
       }
       List<SearchUserQL> dataResult = [];
+      int orgCount = 0;
+      int unknownCount = 0;
+      final Map<String, int> unknownTypeStats = {};
       dataList.forEach((item) {
-        var userModel = SearchUserQL.fromMap(item["user"]);
-        dataResult.add(userModel);
+        final node = item["user"];
+        // search(type:USER,...) 的 node 是 SearchResultItem union。GitHub 语义上
+        // "USER 搜索"包含 Organization——`sort:followers` 排 China 榜顶部时字节 /
+        // 腾讯 / 阿里 / PaddlePaddle 等 org 帐号必然混入。GSY 侧 PersonPage 已经
+        // 原生兼容 Org（[base_person_state.dart] / [person_page.dart] 内部通过
+        // `userInfo.type == "Organization"` 短路 status / contribution 等 org
+        // 不支持的能力），所以这里正确姿势是**保留 org 节点并映射为 SearchUserQL**，
+        // 由 UI 层加"组织"徽标区分即可；不能像之前那版一样把 org 粗暴过滤掉，那
+        // 等于扔掉字节 / 腾讯 / 阿里这类高关注度的 China top account。
+        final typename = node is Map ? node['__typename'] as String? : null;
+        if (typename == 'User' || typename == 'Organization') {
+          if (typename == 'Organization') orgCount++;
+          dataResult.add(SearchUserQL.fromMap(node));
+          return;
+        }
+        // 未知类型（union 未来新增 / 极端边界）仍然丢弃，避免渲染空壳卡片。
+        unknownCount++;
+        final key = typename ?? 'null';
+        unknownTypeStats[key] = (unknownTypeStats[key] ?? 0) + 1;
       });
+      if (orgCount > 0 || unknownCount > 0) {
+        talker.info(
+            'searchTrendUserRequest location=$location cursor=$cursor: '
+            'org=$orgCount / unknown=$unknownCount(分布=$unknownTypeStats) / '
+            '总渲染=${dataResult.length}/${dataList.length}');
+      }
       return DataResult((dataResult, endCursor), true);
     } else {
       talker.warning(

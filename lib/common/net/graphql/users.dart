@@ -1,3 +1,27 @@
+/// Trend 用户列表 GraphQL query
+///
+/// GitHub 语义澄清：
+/// `search(type: USER, ...)` 的 `edges[i].node` 是 `SearchResultItem` union，
+/// **`type: USER` 语义上就包含 Organization**——GH 官方把 User 和 Organization
+/// 统称为 "Account"。`sort:followers` 场景下 China 榜顶部字节 / 腾讯 / 阿里 /
+/// PaddlePaddle 等 org 帐号必然混入。
+///
+/// 因此这里同时写 `... on User { ... }` 和 `... on Organization { ... }`
+/// 两个 fragment，让 org 命中时也能拿到 login/avatar/description 等字段。
+///
+/// 字段对齐（User vs Organization）：
+/// - `name`：都有
+/// - `login`：都有（Organization.login 一定 non-null）
+/// - `avatarUrl`：都有
+/// - `bio`：Organization 无 → 用 `description`，Repository 层映射时统一到 `bio`
+/// - `followers`：Organization 无 → 组织的"关注度"用 `membersWithRole.totalCount`
+///   近似（成员数），Repository 层映射到 `followers` 字段以复用 UI
+/// - `lang`：User 用 `repositories(first:1, ...)` 的主 language；Organization
+///   同样支持 `repositories`，一并取
+///
+/// 加 `__typename` 让 Repository 层用 `node['__typename']` 做严格判据，区分
+/// User / Organization 分支映射（比 `login == null` 兜底更清晰），并把
+/// isOrganization 传递到 UI 层加"组织"徽标。
 const String readTrendUser = r'''
 query getTrendUser($location: String!){
   search(type: USER, query: $location, first: 100) {
@@ -6,6 +30,7 @@ query getTrendUser($location: String!){
     }
     user: edges {
       user: node {
+      		__typename
       		... on User {
             name,
             avatarUrl,
@@ -14,6 +39,25 @@ query getTrendUser($location: String!){
             },
             bio,
             login,
+            lang: repositories(orderBy: {field: STARGAZERS, direction: DESC}, first:1) {
+              nodes{
+                name
+                languages(first:1)  {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+          }
+      		... on Organization {
+            name,
+            avatarUrl,
+            login,
+            description,
+            membersWithRole {
+              totalCount
+            },
             lang: repositories(orderBy: {field: STARGAZERS, direction: DESC}, first:1) {
               nodes{
                 name
@@ -40,6 +84,7 @@ query getTrendUser($location: String!,  $after: String!){
     }
     user: edges {
       user: node {
+      		__typename
       		... on User {
             name,
             avatarUrl,
@@ -48,6 +93,25 @@ query getTrendUser($location: String!,  $after: String!){
             },
             bio,
             login,
+            lang: repositories(orderBy: {field: STARGAZERS, direction: DESC}, first:1) {
+              nodes{
+                name
+                languages(first:1)  {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+          }
+      		... on Organization {
+            name,
+            avatarUrl,
+            login,
+            description,
+            membersWithRole {
+              totalCount
+            },
             lang: repositories(orderBy: {field: STARGAZERS, direction: DESC}, first:1) {
               nodes{
                 name
